@@ -170,12 +170,16 @@
                     <div class="hstat-label">총 예산 (조원)</div>
                 </div>
                 <div class="hstat">
+                    <div class="hstat-val" id="h-field">16</div>
+                    <div class="hstat-label">분야</div>
+                </div>
+                <div class="hstat">
                     <div class="hstat-val" id="h-proj">-</div>
                     <div class="hstat-label">단위사업</div>
                 </div>
                 <div class="hstat">
-                    <div class="hstat-val" id="h-min">-</div>
-                    <div class="hstat-label">소관부처</div>
+                    <div class="hstat-val" id="h-sub">-</div>
+                    <div class="hstat-label">세부사업</div>
                 </div>
                 <a href="map3d.html" class="map3d-btn">🗺 3D 예산 지도</a>
             </div>
@@ -185,6 +189,8 @@
     <div class="tab-bar">
         <div class="tab-bar-inner">
             <button class="tab-btn active" onclick="switchTab('field')">📊 분야별 현황</button>
+            <button class="tab-btn" onclick="switchTab('subfield')">📂 부문별 현황</button>
+            <button class="tab-btn" onclick="switchTab('program')">📋 프로그램별 현황</button>
             <button class="tab-btn" onclick="switchTab('ministry')">🏛 부처별 현황</button>
             <button class="tab-btn" onclick="switchTab('list')">📄 세부사업 목록</button>
         </div>
@@ -269,6 +275,77 @@
                             <tbody id="field-table-body"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAB: 부문별 현황 -->
+            <div id="panel-subfield" class="tab-panel">
+                <div class="section-divider">부문별 예산 현황 (백만원)</div>
+                <div class="kpi-row">
+                    <div class="kpi-card blue"><div class="kpi-label">총 예산</div><div class="kpi-value" id="sf-k-budget">-</div><div class="kpi-sub">백만원</div></div>
+                    <div class="kpi-card green"><div class="kpi-label">부문 수</div><div class="kpi-value" id="sf-k-count">-</div><div class="kpi-sub">개 부문</div></div>
+                    <div class="kpi-card yellow"><div class="kpi-label">단위사업 수</div><div class="kpi-value" id="sf-k-proj">-</div><div class="kpi-sub">개 사업</div></div>
+                    <div class="kpi-card purple"><div class="kpi-label">최대 부문</div><div class="kpi-value" id="sf-k-max">-</div><div class="kpi-sub" id="sf-k-max-name">-</div></div>
+                </div>
+                <div class="chart-card wide">
+                    <div class="chart-title"><span class="chart-title-dot" style="background:#2563eb"></span>부문별 예산 규모 (상위 30)</div>
+                    <div class="chart-wrap h400"><canvas id="sf-bar-chart"></canvas></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">부문별 상세 현황</div>
+                        <div class="table-meta"><span class="badge badge-blue" id="sf-table-count"></span></div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th style="width:40px" class="nosort">순위</th>
+                                <th onclick="sfSortBy('name')" id="sft-name">부문명</th>
+                                <th onclick="sfSortBy('field')" id="sft-field">분야</th>
+                                <th onclick="sfSortBy('count')" id="sft-count">사업수</th>
+                                <th style="text-align:right" onclick="sfSortBy('budget')" id="sft-budget">총 예산 (백만원) ▼</th>
+                                <th style="width:130px">점유율</th>
+                            </tr></thead>
+                            <tbody id="sf-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="sf-pagination"></div>
+                </div>
+            </div>
+
+            <!-- TAB: 프로그램별 현황 -->
+            <div id="panel-program" class="tab-panel">
+                <div class="section-divider">프로그램별 예산 현황 (백만원)</div>
+                <div class="kpi-row">
+                    <div class="kpi-card blue"><div class="kpi-label">총 예산</div><div class="kpi-value" id="pg-k-budget">-</div><div class="kpi-sub">백만원</div></div>
+                    <div class="kpi-card green"><div class="kpi-label">프로그램 수</div><div class="kpi-value" id="pg-k-count">-</div><div class="kpi-sub">개 프로그램</div></div>
+                    <div class="kpi-card yellow"><div class="kpi-label">단위사업 수</div><div class="kpi-value" id="pg-k-proj">-</div><div class="kpi-sub">개 사업</div></div>
+                    <div class="kpi-card purple"><div class="kpi-label">최대 프로그램</div><div class="kpi-value" id="pg-k-max">-</div><div class="kpi-sub" id="pg-k-max-name">-</div></div>
+                </div>
+                <div class="chart-card wide">
+                    <div class="chart-title"><span class="chart-title-dot" style="background:#7c3aed"></span>프로그램별 예산 규모 (상위 30)</div>
+                    <div class="chart-wrap h400"><canvas id="pg-bar-chart"></canvas></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">프로그램별 상세 현황</div>
+                        <div class="table-meta"><span class="badge badge-blue" id="pg-table-count"></span></div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th style="width:40px" class="nosort">순위</th>
+                                <th onclick="pgSortBy('name')" id="pgt-name">프로그램명</th>
+                                <th onclick="pgSortBy('ministry')" id="pgt-ministry">부처</th>
+                                <th onclick="pgSortBy('field')" id="pgt-field">분야</th>
+                                <th onclick="pgSortBy('count')" id="pgt-count">사업수</th>
+                                <th style="text-align:right" onclick="pgSortBy('budget')" id="pgt-budget">총 예산 (백만원) ▼</th>
+                                <th style="width:130px">점유율</th>
+                            </tr></thead>
+                            <tbody id="pg-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="pg-pagination"></div>
                 </div>
             </div>
 
@@ -422,13 +499,14 @@
         const tb = allData.reduce((s,r) => s + r.budget, 0);
         document.getElementById('h-budget').textContent = (tb / 1000000).toFixed(1);
         document.getElementById('h-proj').textContent = allData.length.toLocaleString();
-        document.getElementById('h-min').textContent = new Set(allData.map(r => r.ministry)).size;
+        document.getElementById('h-field').textContent = new Set(allData.map(r => r.field)).size;
+        document.getElementById('h-sub').textContent = allData.reduce((s,r) => s + r.details.length, 0).toLocaleString();
     }
 
     // ══════════════════════════════
     // 탭
     // ══════════════════════════════
-    const TAB_IDS = ['field','ministry','list'];
+    const TAB_IDS = ['field','subfield','program','ministry','list'];
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', TAB_IDS[i] === tab));
@@ -502,6 +580,8 @@
     function renderCurrentTab() {
         switch(currentTab) {
             case 'field': renderField(); break;
+            case 'subfield': renderSubfield(); break;
+            case 'program': renderProgram(); break;
             case 'ministry': renderMinistry(); break;
             case 'list': renderList(); break;
         }
@@ -858,6 +938,169 @@
         const btn = document.getElementById('ebtn-'+id);
         if (row) row.classList.toggle('open', expandedRows.has(id));
         if (btn) btn.classList.toggle('open', expandedRows.has(id));
+    }
+
+    // ══════════════════════════════
+    // 페이지네이션 헬퍼
+    // ══════════════════════════════
+    function buildPagination(containerId, total, page, pageSize, onPage) {
+        const pg = document.getElementById(containerId);
+        pg.innerHTML = '';
+        const pages = Math.ceil(total / pageSize);
+        if (pages <= 1) return;
+        const addBtn = (lbl, p, disabled=false, active=false) => {
+            const b = document.createElement('button');
+            b.className = 'page-btn' + (active?' active':'');
+            b.textContent = lbl;
+            b.disabled = disabled;
+            b.onclick = () => onPage(p);
+            pg.appendChild(b);
+        };
+        addBtn('«', 1, page===1);
+        addBtn('‹', page-1, page===1);
+        const start = Math.max(1, page-2), end = Math.min(pages, start+4);
+        for (let i=start; i<=end; i++) addBtn(i, i, false, i===page);
+        addBtn('›', page+1, page===pages);
+        addBtn('»', pages, page===pages);
+    }
+
+    // ══════════════════════════════
+    // ④ 부문별 현황
+    // ══════════════════════════════
+    let sfSortKey = 'budget', sfSortDir = -1, sfPage = 1;
+    const SF_PAGE = 20;
+
+    function sfSortBy(key) {
+        if (sfSortKey === key) sfSortDir *= -1;
+        else { sfSortKey = key; sfSortDir = key==='budget'?-1:1; }
+        ['name','field','count','budget'].forEach(k => {
+            const el = document.getElementById('sft-'+k);
+            if (el) el.textContent = el.textContent.replace(/[▲▼]/g,'').trim() + (k===key?(sfSortDir>0?' ▲':' ▼'):'');
+        });
+        sfPage = 1; renderSubfield();
+    }
+
+    function renderSubfield() {
+        const total = filtered.reduce((s,r) => s+r.budget, 0);
+        const map = {};
+        filtered.forEach(r => {
+            if (!map[r.subfield]) map[r.subfield] = {name:r.subfield, field:r.field, budget:0, count:0};
+            map[r.subfield].budget += r.budget;
+            map[r.subfield].count += 1;
+        });
+        const list = Object.values(map).sort((a,b) => sfSortDir*(sfSortKey==='budget'?b.budget-a.budget:sfSortKey==='count'?b.count-a.count:sfSortKey==='name'?a.name.localeCompare(b.name):a.field.localeCompare(b.field)));
+        const maxItem = [...list].sort((a,b)=>b.budget-a.budget)[0];
+
+        document.getElementById('sf-k-budget').textContent = fmtBudget(total);
+        document.getElementById('sf-k-count').textContent = list.length;
+        document.getElementById('sf-k-proj').textContent = filtered.length.toLocaleString();
+        document.getElementById('sf-k-max').textContent = maxItem ? fmtBudget(maxItem.budget) : '-';
+        document.getElementById('sf-k-max-name').textContent = maxItem ? maxItem.name.slice(0,14) : '-';
+        document.getElementById('sf-table-count').textContent = `${list.length}개 부문`;
+
+        // Chart: top 30 by budget
+        const top30 = [...list].sort((a,b)=>b.budget-a.budget).slice(0,30);
+        mkChart('sf-bar-chart', {
+            type:'bar',
+            data:{
+                labels: top30.map(c=>c.name),
+                datasets:[{data:top30.map(c=>c.budget), backgroundColor:top30.map(c=>(FIELD_COLORS[c.field]||'#6b7280')+'44'), borderColor:top30.map(c=>FIELD_COLORS[c.field]||'#6b7280'), borderWidth:1.5, borderRadius:4}]
+            },
+            options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBudget(c.raw)}}}, scales:{x:{ticks:{color:TC,font:{size:10},callback:barY},grid:GRID}, y:{ticks:{color:'#334155',font:{size:10}},grid:GRID}}}
+        });
+
+        // Table with pagination
+        const pages = Math.ceil(list.length/SF_PAGE);
+        if (sfPage > pages) sfPage = Math.max(1, pages);
+        const pageItems = list.slice((sfPage-1)*SF_PAGE, sfPage*SF_PAGE);
+        const startRank = (sfPage-1)*SF_PAGE;
+        document.getElementById('sf-table-body').innerHTML = pageItems.map((c,i) => {
+            const fc = FIELD_COLORS[c.field]||'#6b7280';
+            return `<tr>
+                <td style="font-weight:700;color:var(--text3)">${startRank+i+1}</td>
+                <td class="td-name">${c.name}</td>
+                <td><span class="chip" style="background:${fc}18;color:${fc};border-color:${fc}44;font-size:10px">${c.field}</span></td>
+                <td style="text-align:center;color:var(--text3)">${c.count.toLocaleString()}개</td>
+                <td style="text-align:right;font-weight:700;color:var(--accent)">${fmtM(c.budget)}</td>
+                <td><div style="display:flex;align-items:center;gap:6px">
+                    <div style="width:70px;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${total?c.budget/total*100:0}%;background:${fc};border-radius:3px"></div></div>
+                    <span style="font-size:11px;color:var(--text3)">${pct(c.budget,total)}</span>
+                </div></td>
+            </tr>`;
+        }).join('');
+        buildPagination('sf-pagination', list.length, sfPage, SF_PAGE, p => { sfPage=p; renderSubfield(); });
+    }
+
+    // ══════════════════════════════
+    // ⑤ 프로그램별 현황
+    // ══════════════════════════════
+    let pgSortKey = 'budget', pgSortDir = -1, pgPage = 1;
+    const PG_PAGE = 20;
+
+    function pgSortBy(key) {
+        if (pgSortKey === key) pgSortDir *= -1;
+        else { pgSortKey = key; pgSortDir = key==='budget'?-1:1; }
+        ['name','ministry','field','count','budget'].forEach(k => {
+            const el = document.getElementById('pgt-'+k);
+            if (el) el.textContent = el.textContent.replace(/[▲▼]/g,'').trim() + (k===key?(pgSortDir>0?' ▲':' ▼'):'');
+        });
+        pgPage = 1; renderProgram();
+    }
+
+    function renderProgram() {
+        const total = filtered.reduce((s,r) => s+r.budget, 0);
+        const map = {};
+        filtered.forEach(r => {
+            if (!map[r.program]) map[r.program] = {name:r.program, ministry:r.ministry, field:r.field, budget:0, count:0};
+            map[r.program].budget += r.budget;
+            map[r.program].count += 1;
+        });
+        const list = Object.values(map).sort((a,b) => {
+            if (pgSortKey==='budget') return pgSortDir*(b.budget-a.budget);
+            if (pgSortKey==='count') return pgSortDir*(b.count-a.count);
+            return pgSortDir*a[pgSortKey].localeCompare(b[pgSortKey]);
+        });
+        const maxItem = [...list].sort((a,b)=>b.budget-a.budget)[0];
+
+        document.getElementById('pg-k-budget').textContent = fmtBudget(total);
+        document.getElementById('pg-k-count').textContent = list.length.toLocaleString();
+        document.getElementById('pg-k-proj').textContent = filtered.length.toLocaleString();
+        document.getElementById('pg-k-max').textContent = maxItem ? fmtBudget(maxItem.budget) : '-';
+        document.getElementById('pg-k-max-name').textContent = maxItem ? maxItem.name.slice(0,14) : '-';
+        document.getElementById('pg-table-count').textContent = `${list.length.toLocaleString()}개 프로그램`;
+
+        // Chart: top 30
+        const top30 = [...list].sort((a,b)=>b.budget-a.budget).slice(0,30);
+        mkChart('pg-bar-chart', {
+            type:'bar',
+            data:{
+                labels: top30.map(c=>c.name),
+                datasets:[{data:top30.map(c=>c.budget), backgroundColor:top30.map(c=>(FIELD_COLORS[c.field]||'#6b7280')+'44'), borderColor:top30.map(c=>FIELD_COLORS[c.field]||'#6b7280'), borderWidth:1.5, borderRadius:4}]
+            },
+            options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBudget(c.raw)}}}, scales:{x:{ticks:{color:TC,font:{size:10},callback:barY},grid:GRID}, y:{ticks:{color:'#334155',font:{size:10}},grid:GRID}}}
+        });
+
+        // Table with pagination
+        const pages = Math.ceil(list.length/PG_PAGE);
+        if (pgPage > pages) pgPage = Math.max(1, pages);
+        const pageItems = list.slice((pgPage-1)*PG_PAGE, pgPage*PG_PAGE);
+        const startRank = (pgPage-1)*PG_PAGE;
+        document.getElementById('pg-table-body').innerHTML = pageItems.map((c,i) => {
+            const fc = FIELD_COLORS[c.field]||'#6b7280';
+            return `<tr>
+                <td style="font-weight:700;color:var(--text3)">${startRank+i+1}</td>
+                <td class="td-name" style="max-width:240px">${c.name}</td>
+                <td style="font-size:11px;color:var(--text3);white-space:nowrap">${c.ministry}</td>
+                <td><span class="chip" style="background:${fc}18;color:${fc};border-color:${fc}44;font-size:10px">${c.field}</span></td>
+                <td style="text-align:center;color:var(--text3)">${c.count.toLocaleString()}개</td>
+                <td style="text-align:right;font-weight:700;color:var(--accent)">${fmtM(c.budget)}</td>
+                <td><div style="display:flex;align-items:center;gap:6px">
+                    <div style="width:70px;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${total?c.budget/total*100:0}%;background:${fc};border-radius:3px"></div></div>
+                    <span style="font-size:11px;color:var(--text3)">${pct(c.budget,total)}</span>
+                </div></td>
+            </tr>`;
+        }).join('');
+        buildPagination('pg-pagination', list.length, pgPage, PG_PAGE, p => { pgPage=p; renderProgram(); });
     }
 
     loadData();
