@@ -341,6 +341,7 @@
                     <div class="kpi-card yellow"><div class="kpi-label">단위사업 수</div><div class="kpi-value" id="pg-k-proj">-</div><div class="kpi-sub">개 사업</div></div>
                     <div class="kpi-card purple"><div class="kpi-label">최대 프로그램</div><div class="kpi-value" id="pg-k-max">-</div><div class="kpi-sub" id="pg-k-max-name">-</div></div>
                 </div>
+                <div id="pg-field-treemaps"></div>
                 <div class="chart-card wide">
                     <div class="chart-title"><span class="chart-title-dot" style="background:#7c3aed"></span>프로그램별 예산 규모 (상위 30)</div>
                     <div class="chart-wrap h400"><canvas id="pg-bar-chart"></canvas></div>
@@ -1136,7 +1137,113 @@
         pgPage = 1; renderProgram();
     }
 
+    // ══════════════════════════════
+    // 분야별 부문>프로그램 중첩 트리맵 (16개)
+    // ══════════════════════════════
+    function renderFieldProgramTreemaps() {
+        const wrap = document.getElementById('pg-field-treemaps');
+        if (!wrap) return;
+        wrap.innerHTML = '';
+
+        // 분야별 집계: 부문 > 프로그램
+        const fieldMap = {};
+        filtered.forEach(r => {
+            if (!fieldMap[r.field]) fieldMap[r.field] = { budget: 0, subs: {} };
+            fieldMap[r.field].budget += r.budget;
+            if (!fieldMap[r.field].subs[r.subfield]) fieldMap[r.field].subs[r.subfield] = { label: r.subfield, budget: 0, progs: {} };
+            fieldMap[r.field].subs[r.subfield].budget += r.budget;
+            const pk = r.program;
+            if (!fieldMap[r.field].subs[r.subfield].progs[pk]) fieldMap[r.field].subs[r.subfield].progs[pk] = { label: pk, budget: 0 };
+            fieldMap[r.field].subs[r.subfield].progs[pk].budget += r.budget;
+        });
+
+        // 예산 순으로 분야 정렬
+        const sortedFields = FIELD_NAMES.filter(f => fieldMap[f] && fieldMap[f].budget > 0)
+            .sort((a,b) => fieldMap[b].budget - fieldMap[a].budget);
+
+        sortedFields.forEach((fname, idx) => {
+            const fd = fieldMap[fname];
+            const color = FIELD_COLORS[fname] || '#6b7280';
+            const fieldTotal = fd.budget;
+
+            // 카드 컨테이너
+            const card = document.createElement('div');
+            card.className = 'chart-card wide';
+            card.style.marginBottom = '16px';
+
+            // 제목
+            const title = document.createElement('div');
+            title.className = 'chart-title';
+            title.innerHTML = `<span class="chart-title-dot" style="background:${color}"></span>
+                <span style="color:${color};font-weight:700">${String(idx+1).padStart(2,'0')}.</span>&nbsp;${fname} — 부문별 프로그램 트리맵
+                <span style="margin-left:auto;font-size:12px;font-weight:600;color:${color}">${fmtBudget(fieldTotal)}</span>`;
+            card.appendChild(title);
+
+            // 트리맵 컨테이너
+            const tmContainer = document.createElement('div');
+            tmContainer.className = 'treemap-container';
+            const subCount = Object.keys(fd.subs).length;
+            tmContainer.style.height = (subCount <= 3 ? 320 : subCount <= 8 ? 420 : 500) + 'px';
+            card.appendChild(tmContainer);
+            wrap.appendChild(card);
+
+            // 렌더링 (DOM에 추가된 후 크기 계산)
+            requestAnimationFrame(() => {
+                const W = tmContainer.offsetWidth || 800;
+                const H = tmContainer.offsetHeight || 420;
+                if (!W || !H) return;
+
+                const subList = Object.values(fd.subs).sort((a,b) => b.budget - a.budget);
+                const subItems = subList.map(d => ({ ...d, area: (d.budget / fieldTotal) * W * H }));
+                const subRects = squarify(subItems, 0, 0, W, H);
+
+                const LABEL_H = 26;
+
+                subRects.forEach(sr => {
+                    // 부문 컨테이너
+                    const subDiv = document.createElement('div');
+                    subDiv.className = 'nested-treemap-field';
+                    subDiv.style.cssText = `left:${sr.x}px;top:${sr.y}px;width:${sr.w}px;height:${sr.h}px;background:${color}15;`;
+                    subDiv.title = `${sr.label}: ${fmtM(sr.budget)} 백만원 (${pct(sr.budget, fieldTotal)})`;
+
+                    // 부문 라벨
+                    const lbl = document.createElement('div');
+                    lbl.className = 'nested-field-label';
+                    lbl.style.background = `linear-gradient(135deg,${color}dd,${color}bb)`;
+                    lbl.style.fontSize = sr.w < 120 ? '10px' : '11px';
+                    lbl.innerHTML = `${sr.label}<small>${fmtBudget(sr.budget)}</small>`;
+                    subDiv.appendChild(lbl);
+
+                    // 프로그램 트리맵
+                    const pW = sr.w - 4, pH = sr.h - LABEL_H - 4;
+                    if (pW > 8 && pH > 8) {
+                        const progList = Object.values(sr.progs).sort((a,b) => b.budget - a.budget);
+                        const progTotal = progList.reduce((s,d) => s + d.budget, 0);
+                        if (progTotal > 0) {
+                            const progItems = progList.map(d => ({ ...d, area: (d.budget / progTotal) * pW * pH }));
+                            const progRects = squarify(progItems, 0, 0, pW, pH);
+
+                            progRects.forEach(pr => {
+                                const cell = document.createElement('div');
+                                cell.className = 'nested-sub-cell';
+                                const cw = pr.w, ch = pr.h;
+                                if (cw < 45 || ch < 30) cell.classList.add('nst');
+                                else if (cw < 80 || ch < 50) cell.classList.add('nsm');
+                                cell.style.cssText = `left:${pr.x + 2}px;top:${pr.y + LABEL_H + 2}px;width:${cw}px;height:${ch}px;background:linear-gradient(135deg,${color}aa,${color}77);`;
+                                cell.title = `${pr.label}: ${fmtM(pr.budget)} 백만원 (${pct(pr.budget, fieldTotal)})`;
+                                cell.innerHTML = `<div class="sub-name">${pr.label}</div><div class="sub-val">${fmtBudget(pr.budget)}</div><div class="sub-pct">${pct(pr.budget, sr.budget)}</div>`;
+                                subDiv.appendChild(cell);
+                            });
+                        }
+                    }
+                    tmContainer.appendChild(subDiv);
+                });
+            });
+        });
+    }
+
     function renderProgram() {
+        renderFieldProgramTreemaps();
         const total = filtered.reduce((s,r) => s+r.budget, 0);
         const map = {};
         filtered.forEach(r => {
